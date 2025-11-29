@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minesweeper Chronicles: Eternal Depths</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative&family=Orbitron:wght@500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="world-container">
+    <!-- World Map -->
+    <div id="world-map" class="screen active">
+      <h1 class="title">Minesweeper Chronicles</h1>
+      <div class="player-info">
+        <div>Adventurer: <span id="player-name">Hero</span></div>
+        <div>Level <span id="level">1</span> | Gear Score <span id="gear-score">10</span></div>
+        <div>Gold <span id="gold">0</span> | Kills <span id="boss-kills">0</span></div>
+      </div>
+
+      <div class="map">
+        <div class="dungeon" data-zone="0" style="top:20%;left:15%">
+          <h3>Beginner Caves</h3><p>Recommended GS: 0</p>
+        </div>
+        <div class="dungeon" data-zone="1" style="top:40%;left:60%">
+          <h3>Forgotten Mines</h3><p>Req GS: 50</p>
+        </div>
+        <div class="dungeon" data-zone="2" style="top:70%;left:30%">
+          <h3>Abyssal Vaults</h3><p>Req GS: 150</p>
+        </div>
+        <div class="dungeon" data-zone="3" style="top:50%;left:80%">
+          <h3>Nether Core</h3><p>Req GS: 300</p><span class="boss">BOSS</span>
+        </div>
+        <div class="dungeon" data-zone="4" style="top:15%;left:70%">
+          <h3>Eternal Void</h3><p>Req GS: 600</p><span class="boss">FINAL BOSS</span>
+        </div>
+      </div>
+
+      <div class="bottom-bar">
+        <button id="inventory-btn">Inventory & Shop</button>
+        <button id="leaderboard-btn">Hall of Legends</button>
+        <button id="party-btn">Party (<span id="party-count">1</span>/4)</button>
+      </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+      <div class="top-bar">
+        <button id="back-to-map">← World Map</button>
+        <h2 id="zone-name">Zone</h2>
+        <div>HP <span id="hp">100</span>/<span id="max-hp">100</span></div>
+      </div>
+      <div id="timer">Time: 0s</div>
+      <div id="minefield"></div>
+      <div id="combat-log"></div>
+      <div id="boss-hud" class="hidden">
+        <div>BOSS: <span id="boss-name"></span></div>
+        <div class="boss-hp-bar"><div id="boss-hp-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- Inventory / Shop -->
+    <div id="inventory-screen" class="screen">
+      <h2>Inventory & Forge</h2>
+      <button class="close-btn">×</button>
+      <div class="tabs">
+        <button class="tab active" data-tab="gear">Gear</button>
+        <button class="tab" data-tab="relics">Relics</button>
+        <button class="tab" data-tab="shop">Forge Shop</button>
+      </div>
+      <div id="gear-tab" class="tab-content"></div>
+      <div id="relics-tab" class="tab-content hidden"></div>
+      <div id="shop-tab" class="tab-content hidden"></div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div id="leaderboard-screen" class="screen">
+      <h2>Hall of Legends</h2>
+      <button class="close-btn">×</button>
+      <div id="leaderboard-list"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
