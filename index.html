@@ -1,77 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Minesweeper Chronicles: Eternal Depths</title>
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delve: The Shattered Grid</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="world-container">
 
-    <!-- World Map -->
-    <div id="world-map" class="screen active">
-      <h1 class="title">Minesweeper Chronicles</h1>
-      <div class="player-info">
-        <div>Level <span id="level">1</span> | Gear Score <span id="gear-score">10</span></div>
-        <div>Gold <span id="gold">0</span> | Boss Kills <span id="boss-kills">0</span></div>
-        <div>HP <span id="hp">100</span>/<span id="max-hp">100</span></div>
-      </div>
+    <!-- Class Selection Screen -->
+    <div id="class-selection" class="screen active">
+        <div class="modal-content">
+            <h1>Choose Your Class</h1>
+            <div class="class-cards">
+                <div class="class-card" data-class="Striker">
+                    <h3>Striker</h3>
+                    <p>A master of offense. Deals high damage with every reveal.</p>
+                </div>
+                <div class="class-card" data-class="Guardian">
+                    <h3>Guardian</h3>
+                    <p>A sturdy defender. Has more health and can shield from damage.</p>
+                </div>
+                <div class="class-card" data-class="Oracle">
+                    <h3>Oracle</h3>
+                    <p>A wise support. Can reveal tiles and has powerful utility skills.</p>
+                </div>
+            </div>
+            <p><strong>Controls:</strong> Left Click to Reveal, Right Click to Flag, Ctrl+Click to Chord.</p>
+        </div>
+    </div>
 
-      <div class="map">
-        <div class="dungeon" data-zone="0"><h3>Beginner Caves</h3><p>No requirement</p></div>
-        <div class="dungeon" data-zone="1"><h3>Forgotten Mines</h3><p>Req GS: 50</p></div>
-        <div class="dungeon" data-zone="2"><h3>Abyssal Vaults</h3><p>Req GS: 150</p></div>
-        <div class="dungeon" data-zone="3"><h3>Nether Core</h3><p>Req GS: 300</p><span class="boss-tag">BOSS</span></div>
-        <div class="dungeon" data-zone="4"><h3>Eternal Void</h3><p>Req GS: 600</p><span class="boss-tag">FINAL BOSS</span></div>
-      </div>
+    <!-- Hub Screen -->
+    <div id="hub-screen" class="screen">
+        <div class="modal-content">
+            <h1>The Bastion</h1>
+            <div id="hub-player-info"></div>
+            <button id="hub-practice-btn">Practice Grounds</button>
+            <button id="hub-map-btn">World Map</button>
+            <button id="hub-shop-btn">Shop</button>
+        </div>
+    </div>
 
-      <div class="bottom-bar">
-        <button id="inventory-btn">Inventory & Forge</button>
-        <button id="reset-btn">New Hero (Reset)</button>
-      </div>
+    <!-- World Map Screen -->
+    <div id="world-map-screen" class="screen">
+        <div class="modal-content">
+            <button id="map-back-btn">Back to Hub</button>
+            <div class="map-node" id="node-1" data-zone-id="1">1</div>
+            <div class="map-node" id="node-2" data-zone-id="2">2</div>
+            <div class="map-node locked" id="node-3" data-zone-id="3">3</div>
+        </div>
+    </div>
+
+    <!-- Shop Screen -->
+    <div id="shop-screen" class="screen">
+        <div class="modal-content">
+            <h1>Shop</h1>
+            <p id="shop-player-gold"></p>
+            <div id="shop-items"></div>
+            <button id="shop-back-btn">Leave Shop</button>
+        </div>
     </div>
 
     <!-- Game Screen -->
-    <div id="game-screen" class="screen">
-      <div class="top-bar">
-        <button id="back-to-map">← World Map</button>
-        <h2 id="zone-name">Dungeon</h2>
-        <div>HP <span id="hp-display">100</span>/<span id="maxhp-display">100</span></div>
-        <button id="use-potion" class="potion-btn">Potion x<span id="potion-count">0</span></button>
-      </div>
-      <div id="timer">Time: 0s</div>
-      <div id="minefield"></div>
-      <div id="message"></div>
-      <div id="combat-hud" class="hidden">
-        <div id="combat-title">ENEMY!</div>
-        <div>Enemy: <span id="enemy-name">???</span></div>
-        <div class="boss-bar"><div id="enemy-hp-fill">100%</div></div>
-      </div>
-      <div id="boss-hud" class="hidden">
-        <div>BOSS: <span id="boss-name">???</span></div>
-        <div class="boss-bar"><div id="boss-hp-fill">100%</div></div>
-      </div>
+    <div id="game-container" class="screen">
+        <button id="back-to-hub-btn">Flee to Hub</button>
+        <div id="game-top-bar">
+            <div id="player-stats">
+                <h2 id="player-class-display"></h2>
+                <p>Level: <span id="player-level">1</span></p>
+                <p>Health: <span id="player-health-text">100</span> / <span id="player-max-health-text">100</span></p>
+                <div class="health-bar-container"><div id="player-health-bar" style="width: 100%;"></div></div>
+                <p>Damage: <span id="player-damage">5</span></p>
+                <p>Gold: <span id="player-gold">0</span> | XP: <span id="player-xp">0</span>/<span id="player-xp-to-next">100</span></p>
+            </div>
+            <div id="enemy-stats">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div id="enemy-portrait"></div>
+                    <div>
+                        <h2 id="enemy-name">Enemy</h2>
+                        <p>Health: <span id="enemy-health-text">50</span> / <span id="enemy-max-health-text">50</p>
+                        <div class="health-bar-container"><div id="enemy-health-bar" style="width: 100%;"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="game-area">
+            <div id="grid-container"></div>
+            <div id="side-panel">
+                <div class="panel">
+                    <h2>Skills</h2>
+                    <button id="skill-1">Skill</button>
+                </div>
+                <div class="panel">
+                    <h2>Combat Log</h2>
+                    <div id="log"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Over/Victory Modal (overlays game screen) -->
+    <div id="result-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 1000; justify-content: center; align-items: center;">
+        <div class="modal-content">
+            <h2 id="result-title"></h2>
+            <p id="result-message"></p>
+            <button id="result-continue-btn">Continue</button>
+        </div>
     </div>
 
-    <!-- Inventory -->
-    <div id="inventory-screen" class="screen">
-      <div class="inv-header">
-        <h2>Forge of Legends</h2>
-        <button class="close-btn">×</button>
-      </div>
-      <div class="tabs">
-        <button class="tab active" data-tab="gear">Gear</button>
-        <button class="tab" data-tab="relics">Relics</button>
-        <button class="tab" data-tab="shop">Shop</button>
-      </div>
-      <div id="gear-tab" class="tab-content active"></div>
-      <div id="relics-tab" class="tab-content"></div>
-      <div id="shop-tab" class="tab-content"></div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
