@@ -1,0 +1,128 @@
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Orbitron', sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  color: #fff;
+  min-height: 100vh;
+  overflow: hidden;
+}
+.screen { display: none; position: absolute; inset: 0; padding: 20px; }
+.screen.active { display: block; }
+
+.title {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: 4rem;
+  text-align: center;
+  background: linear-gradient(90deg, #ff8a00, #e52e71);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 30px rgba(255,100,0,0.5);
+  margin-bottom: 20px;
+}
+
+.player-info {
+  text-align: center;
+  background: rgba(0,0,0,0.6);
+  padding: 15px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  font-size: 1.3rem;
+}
+
+.map {
+  position: relative;
+  height: 70vh;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="%23002233" width="100" height="100"/><circle fill="%23004455" cx="50" cy="50" r="20"/></svg>');
+  background-size: 60px;
+  border: 3px solid #00ffff;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.dungeon {
+  position: absolute;
+  width: 180px;
+  padding: 15px;
+  background: rgba(0,255,255,0.2);
+  border: 2px solid cyan;
+  border-radius: 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(5px);
+}
+.dungeon:hover { transform: scale(1.1); box-shadow: 0 0 30px cyan; }
+.dungeon.locked { opacity: 0.4; cursor: not-allowed; }
+.boss { background: #900; color: gold; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 15px;
+  background: rgba(0,0,0,0.8);
+}
+.bottom-bar button { padding: 12px 24px; font-size: 1.1rem; background: #00ffff; color: #000; border: none; border-radius: 10px; cursor: pointer; }
+
+#minefield {
+  display: inline-grid;
+  gap: 3px;
+  background: #111;
+  padding: 15px;
+  border-radius: 15px;
+  margin: 20px auto;
+  box-shadow: 0 0 30px rgba(0,255,255,0.5);
+}
+.cell {
+  width: 32px; height: 32px;
+  background: linear-gradient(#444, #222);
+  border: 2px outset #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  transition: all 0.1s;
+}
+.cell.revealed { background: #222; border: 1px solid #444; }
+.cell.flagged { background: #c00 !important; }
+.cell.mine { background: #900 !important; animation: explode 0.4s; }
+@keyframes explode { 0%{transform:scale(1)} 50%{transform:scale(1.4)} 100%{transform:scale(1)} }
+
+#combat-log {
+  margin-top: 20px;
+  height: 100px;
+  overflow-y: auto;
+  background: rgba(0,0,0,0.7);
+  padding: 10px;
+  border-radius: 10px;
+}
+
+#boss-hud {
+  position: absolute;
+  top: 100px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(100,0,0,0.9);
+  padding: 15px;
+  border: 3px solid red;
+  border-radius: 15px;
+  text-align: center;
+  width: 400px;
+}
+.boss-hp-bar {
+  height: 20px;
+  background: #333;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+#boss-hp-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, red, orange);
+  transition: width 0.5s;
+}
+
+.hidden { display: none !important; }
