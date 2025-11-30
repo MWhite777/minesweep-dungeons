@@ -10,9 +10,8 @@
     <!-- ========== LOGIN ========== -->
     <div id="login">
         <h1>Mindsweeper MMO</h1>
-        <input id="username" placeholder="Enter username" maxlength="12">
-        <button onclick="login()">Play</button>
-    </div>
+<input id="username" placeholder="Enter username" maxlength="12" onkeypress="if(event.key==='Enter') login()">
+<button type="button" onclick="login()">Play</button>
 
     <!-- ========== HUB ========== -->
     <div id="hub" style="display:none">
