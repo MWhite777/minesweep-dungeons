@@ -6,6 +6,8 @@ function login() {
     document.getElementById("hub").style.display = "block";
 }
 
+document.body.style.background = "#222";   // make sure body is visible
+
 /*********************************************************************
  * 0. UTILS
  *********************************************************************/
