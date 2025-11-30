@@ -215,3 +215,118 @@ document.getElementById('restart').addEventListener('click',startFloor);
 
 /* ----------------- INIT ----------------- */
 createDungeonSelector();
+
+/* ----------------- ENEMIES & BOSS ----------------- */
+let boss = null;
+
+// Spawn mini-enemies on the floor
+function spawnEnemies(){
+  if(!board) return;
+  enemies = Array(board.length).fill().map(()=>Array(board[0].length).fill(null));
+  for(let r=0;r<board.length;r++){
+    for(let c=0;c<board[0].length;c++){
+      if(Math.random() < 0.05 && board[r][c] !== 'M'){ // 5% chance per cell
+        enemies[r][c] = {hp:5, icon:'👾'};
+      }
+    }
+  }
+}
+
+// Draw enemies on the board
+function drawEnemies(){
+  const boardEl = document.getElementById('board');
+  if(!boardEl) return;
+  for(let r=0;r<board.length;r++){
+    for(let c=0;c<board[0].length;c++){
+      const cell = boardEl.children[r*board[0].length + c];
+      if(enemies[r][c] && !revealed[r][c]) cell.textContent = enemies[r][c].icon;
+    }
+  }
+}
+
+// Attack enemy at cell
+function attackEnemy(r,c){
+  if(!enemies[r][c]) return;
+  enemies[r][c].hp -= player.gearScore || 1;
+  const boardEl = document.getElementById('board');
+  const rect = boardEl?.children[r*board[0].length+c]?.getBoundingClientRect();
+  const x = rect ? rect.left + rect.width/2 : 0;
+  const y = rect ? rect.top : 0;
+  showFloatingDamage('-'+(player.gearScore||1), x, y);
+  if(enemies[r][c].hp <= 0) enemies[r][c] = null;
+  updateBoardUI();
+  if(boss) damageBoss(player.gearScore||1);
+}
+
+// Boss system
+function spawnBoss(hp){
+  boss = {hp:hp, maxHp:hp};
+  const statsEl = document.getElementById('stats');
+  if(!document.getElementById('bossBar')){
+    const div = document.createElement('div');
+    div.id = 'bossBarContainer';
+    div.innerHTML = 'Boss HP: <div class="bar-bg"><div id="bossBar" class="bar-fill"></div></div>';
+    statsEl.appendChild(div);
+  }
+  updateHeaderBars();
+}
+
+function damageBoss(amount){
+  if(!boss) return;
+  boss.hp -= amount;
+  if(boss.hp < 0) boss.hp = 0;
+  updateHeaderBars();
+}
+
+// Floating damage numbers
+function showFloatingDamage(text,x,y){
+  const dmgEl = document.createElement('div');
+  dmgEl.textContent = text;
+  dmgEl.style.position = 'absolute';
+  dmgEl.style.left = x+'px';
+  dmgEl.style.top = y+'px';
+  dmgEl.style.color = 'red';
+  dmgEl.style.fontWeight = 'bold';
+  dmgEl.style.pointerEvents = 'none';
+  dmgEl.style.transition = 'all 1s ease';
+  dmgEl.style.zIndex = '200';
+  document.body.appendChild(dmgEl);
+  setTimeout(()=>{
+    dmgEl.style.top = (y-30)+'px';
+    dmgEl.style.opacity='0';
+  },10);
+  setTimeout(()=>dmgEl.remove(),1000);
+}
+
+// Update header bars including boss
+function updateHeaderBars(){
+  const hpPercent = (player.hp/player.maxHp)*100;
+  const xpPercent = (player.xp/player.xpToNext)*100;
+  const coinPercent = Math.min(player.coins/100,1)*100;
+  document.getElementById('playerHP').textContent = player.hp;
+  document.getElementById('playerMaxHP').textContent = player.maxHp;
+  document.getElementById('playerXP').textContent = player.xp+'/'+player.xpToNext;
+  document.getElementById('playerCoins').textContent = player.coins;
+
+  const bossBar = document.getElementById('bossBar');
+  if(boss && bossBar){
+    bossBar.style.width = (boss.hp/boss.maxHp*100)+'%';
+  }
+}
+
+// Hook revealCell to enemies and boss
+const originalRevealCell = revealCell;
+revealCell = function(r,c){
+  const boardEl = document.getElementById('board');
+  const rect = boardEl?.children[r*board[0].length+c]?.getBoundingClientRect();
+  const x = rect ? rect.left + rect.width/2 : 0;
+  const y = rect ? rect.top : 0;
+
+  const cellValue = board[r][c];
+  originalRevealCell(r,c);
+
+  if(cellValue === 'M') showFloatingDamage('-5', x, y);
+  if(enemies[r][c]) attackEnemy(r,c);
+  if(boss && cellValue === 'M') damageBoss(5); // mines damage boss
+};
+
