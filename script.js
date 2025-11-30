@@ -1,332 +1,271 @@
-/* ----------------- GAME DATA ----------------- */
-const zones = [
-  {name:'Tutorial Village', floors:3, size:9, mines:10, boss:false},
-  {name:'Forest of Shadows', floors:4, size:10, mines:15, boss:false},
-  {name:'Crystal Caverns', floors:4, size:12, mines:20, boss:false},
-  {name:'Fiery Peaks', floors:5, size:14, mines:30, boss:false},
-  {name:'Dark Citadel', floors:1, size:16, mines:40, boss:true}
-];
+/* ===========================
+   UTILS & GLOBALS
+=========================== */
+const $ = id => document.getElementById(id);
+const rand = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+let PLAYER, GRID, ROWS=16, COLS=16, MINES=40;
+let SOCKET = { emit:(...a)=>mockSocket(...a), on:(...a)=>mockSocket(...a) };
 
-let player = {
-  level:1, xp:0, xpToNext:20, hp:20, maxHp:20, coins:0, gearScore:1,
-  inventory:{weapon:'Wooden Pickaxe', armor:'Leather Tunic', accessory:'Lucky Charm', potions:1}
-};
-
-let dungeon = {zone:0, floor:0};
-let board = [], revealed = [], flagged = [], enemies = [];
-let gameOver=false;
-let NFMode = false; // No-Flags Mode
-
-/* ----------------- INITIALIZATION ----------------- */
-function createDungeonSelector() {
-  const sel = document.getElementById('dungeonSelector');
-  sel.innerHTML = '<label><input type="checkbox" id="nfModeToggle"> No-Flags Mode (NF)</label>';
-  zones.forEach((z,i)=>{
-    const btn = document.createElement('button');
-    btn.textContent=z.name;
-    btn.addEventListener('click',()=>startDungeon(i));
-    sel.appendChild(btn);
-  });
-
-  document.getElementById('nfModeToggle').addEventListener('change',(e)=>{
-    NFMode = e.target.checked;
-  });
-}
-function startDungeon(zoneIndex) {
-  dungeon.zone=zoneIndex; dungeon.floor=0;
-  startFloor();
-}
-function startFloor() {
-  gameOver=false;
-  document.getElementById('message').textContent='';
-  const z = zones[dungeon.zone];
-  const size = z.size;
-  const mines = z.mines;
-  board = Array(size).fill().map(()=>Array(size).fill(0));
-  revealed = Array(size).fill().map(()=>Array(size).fill(false));
-  flagged = Array(size).fill().map(()=>Array(size).fill(false));
-  enemies = Array(size).fill().map(()=>Array(size).fill(null));
-  placeMines(size,mines);
-  updateBoardUI();
+/* mock socket for solo demo */
+function mockSocket(evt,data){
+    if(evt==='move'&&data) broadcastMove(data);
+    if(evt==='reveal'&&data) broadcastReveal(data);
 }
 
-/* ----------------- BOARD GENERATION ----------------- */
-function placeMines(size,mines){
-  let placed=0;
-  while(placed<mines){
-    const r=Math.floor(Math.random()*size);
-    const c=Math.floor(Math.random()*size);
-    if(board[r][c]!=='M'){board[r][c]='M'; placed++;}
-  }
-  for(let r=0;r<size;r++){
-    for(let c=0;c<size;c++){
-      if(board[r][c]!=='M') board[r][c]=countAdjacentMines(r,c);
+/* ===========================
+   PLAYER & PROGRESSION
+=========================== */
+class Player {
+    constructor(name){
+        this.name = name;
+        this.level = 1;
+        this.exp = 0;
+        this.minesCleared = 0;
+        this.coins = 0;
+        this.inventory = new Inventory(20);
+        this.equipment = {};
+        this.initGear();
     }
-  }
-}
-function countAdjacentMines(r,c){
-  let count=0;
-  for(let dr=-1;dr<=1;dr++){for(let dc=-1;dc<=1;dc++){
-    if(dr===0 && dc===0) continue;
-    const nr=r+dr, nc=c+dc;
-    if(nr>=0 && nr<board.length && nc>=0 && nc<board[0].length && board[nr][nc]==='M') count++;
-  }}
-  return count;
-}
-
-/* ----------------- GAMEPLAY ----------------- */
-function revealCell(r,c){
-  if(revealed[r][c]||gameOver) return;
-  revealed[r][c]=true;
-  if(board[r][c]==='M'){
-    player.hp-=5;
-    if(player.hp<=0){gameOver=true; player.hp=0; document.getElementById('message').textContent='You Died!'; return;}
-    document.getElementById('message').textContent='Hit a mine! -5 HP';
-  } else if(board[r][c]===0){
-    for(let dr=-1;dr<=1;dr++){for(let dc=-1;dc<=1;dc++){
-      const nr=r+dr, nc=c+dc;
-      if(nr>=0 && nr<board.length && nc>=0 && nc<board[0].length) revealCell(nr,nc);
-    }}
-  }
-  updateBoardUI();
-  checkWin();
-}
-function toggleFlag(r,c){
-  if(NFMode) return; // Disable flags in NF mode
-  if(revealed[r][c]||gameOver) return;
-  flagged[r][c]=!flagged[r][c];
-  updateBoardUI();
-}
-function chordCell(r,c){
-  if(!revealed[r][c] || board[r][c]==0) return;
-  let flagsAround=0;
-  for(let dr=-1;dr<=1;dr++){for(let dc=-1;dc<=1;dc++){
-    const nr=r+dr, nc=c+dc;
-    if(nr>=0 && nr<board.length && nc>=0 && nc<board[0].length){
-      if(!NFMode && flagged[nr][nc]) flagsAround++;
+    initGear(){
+        this.inventory.add(new Gear("Mouse","common",{speed:1.1}));
+        this.inventory.add(new Gear("Keyboard","common",{flagPower:1.1}));
     }
-  }}
-  if(flagsAround===board[r][c] || NFMode){ // NF ignores flags
-    for(let dr=-1;dr<=1;dr++){for(let dc=-1;dc<=1;dc++){
-      const nr=r+dr, nc=c+dc;
-      if(nr>=0 && nr<board.length && nc>=0 && nc<board[0].length){
-        if(!revealed[nr][nc]) revealCell(nr,nc);
-      }
-    }}
-  }
-}
-
-/* ----------------- BOARD UI ----------------- */
-function updateBoardUI(){
-  const boardEl=document.getElementById('board');
-  boardEl.style.gridTemplateColumns=`repeat(${board[0].length},40px)`;
-  boardEl.style.gridTemplateRows=`repeat(${board.length},40px)`;
-  boardEl.innerHTML='';
-  for(let r=0;r<board.length;r++){
-    for(let c=0;c<board[0].length;c++){
-      const cell=document.createElement('div');
-      cell.className='cell';
-      if(revealed[r][c]) cell.classList.add('revealed');
-      if(flagged[r][c]) cell.classList.add('flagged');
-      if(revealed[r][c]){
-        if(board[r][c]!=='M' && board[r][c]!==0) cell.textContent=board[r][c];
-        if(board[r][c]==='M') cell.textContent='💣';
-      } else if(flagged[r][c]) cell.textContent='🚩';
-      cell.addEventListener('click',()=>revealCell(r,c));
-      cell.addEventListener('contextmenu',(e)=>{e.preventDefault(); toggleFlag(r,c);});
-      cell.addEventListener('dblclick',()=>chordCell(r,c));
-      boardEl.appendChild(cell);
-    }
-  }
-  updatePlayerUI();
-}
-function updatePlayerUI(){
-  document.getElementById('playerLevel').textContent=player.level;
-  document.getElementById('playerHP').textContent=player.hp;
-  document.getElementById('playerMaxHP').textContent=player.maxHp;
-  document.getElementById('playerCoins').textContent=player.coins;
-  document.getElementById('playerXP').textContent=player.xp+'/'+player.xpToNext;
-}
-
-/* ----------------- WIN CONDITION ----------------- */
-function checkWin(){
-  let won=true;
-  for(let r=0;r<board.length;r++){
-    for(let c=0;c<board[0].length;c++){
-      if(board[r][c]!=='M' && !revealed[r][c]) won=false;
-    }
-  }
-  if(won){
-    const z = zones[dungeon.zone];
-    const reward = NFMode ? 15 : 10; // bonus coins for NF mode
-    player.coins += reward;
-    player.xp += 5;
-    if(player.xp >= player.xpToNext){player.level++; player.xp=0; player.maxHp+=5; player.hp=player.maxHp;}
-    dungeon.floor++;
-    if(dungeon.floor >= z.floors){
-      document.getElementById('message').textContent='Dungeon Complete! Coins & XP awarded';
-    } else {
-      document.getElementById('message').textContent='Floor Complete! Proceeding to next floor';
-      startFloor();
-    }
-    updatePlayerUI();
-  }
-}
-
-/* ----------------- INVENTORY & SHOP ----------------- */
-function showInventory(){
-  const inv=document.getElementById('inventory'); inv.classList.toggle('hidden');
-  if(!inv.classList.contains('hidden')){
-    inv.innerHTML='<b>Inventory</b><br>';
-    for(let item in player.inventory) inv.innerHTML+=item+': '+player.inventory[item]+'<br>';
-  }
-}
-function showShop(){
-  const shop=document.getElementById('shop'); shop.classList.toggle('hidden');
-  if(!shop.classList.contains('hidden')){
-    shop.innerHTML='<b>Shop</b><br>';
-    const items=[
-      {name:'Iron Sword',type:'weapon',price:20},
-      {name:'Steel Armor',type:'armor',price:30},
-      {name:'Magic Ring',type:'accessory',price:25},
-      {name:'Potion',type:'potion',price:5}
-    ];
-    items.forEach(i=>{
-      const btn=document.createElement('button');
-      btn.textContent=i.name+' ('+i.price+' coins)';
-      btn.addEventListener('click',()=>{
-        if(player.coins>=i.price){
-          player.coins-=i.price;
-          if(i.type==='potion') player.inventory.potions++;
-          else player.inventory[i.type]=i.name;
-          updatePlayerUI(); showShop();
+    gainExp(n){
+        this.exp += n;
+        if(this.exp >= this.level*100){
+            this.exp -= this.level*100;
+            this.level++;
+            alert(`Level Up! You are now level ${this.level}`);
         }
-      });
-      shop.appendChild(btn);
+        $("level").textContent = this.level;
+        $("exp").textContent = this.exp;
+    }
+    getStat(base){
+        let total = 1;
+        Object.values(this.equipment).forEach(g=>{
+            if(g&&g.stats[base]) total *= g.stats[base];
+        });
+        return total;
+    }
+}
+
+class Gear {
+    constructor(name,rarity,stats){
+        this.name = name;
+        this.rarity = rarity;
+        this.stats = stats;
+    }
+}
+
+class Inventory {
+    constructor(size){
+        this.slots = Array(size).fill(null);
+    }
+    add(item){
+        const idx = this.slots.findIndex(s=>!s);
+        if(idx===-1) return false;
+        this.slots[idx] = item;
+        return true;
+    }
+    remove(idx){
+        const out = this.slots[idx];
+        this.slots[idx] = null;
+        return out;
+    }
+}
+
+/* ===========================
+   GRID & GAME
+=========================== */
+class Grid {
+    constructor(r,c,m){
+        this.r = r;
+        this.c = c;
+        this.m = m;
+        this.cells = Array(r).fill().map(()=>Array(c).fill(0));
+        this.revealed = Array(r).fill().map(()=>Array(c).fill(false));
+        this.flagged = Array(r).fill().map(()=>Array(c).fill(false));
+        this.placeMines();
+        this.calcNumbers();
+    }
+    placeMines(){
+        let placed = 0;
+        while(placed<this.m){
+            const x=rand(0,this.r-1), y=rand(0,this.c-1);
+            if(this.cells[x][y]!==-1){
+                this.cells[x][y]=-1;
+                placed++;
+            }
+        }
+    }
+    calcNumbers(){
+        for(let i=0;i<this.r;i++){
+            for(let j=0;j<this.c;j++){
+                if(this.cells[i][j]===-1) continue;
+                let count=0;
+                for(let di=-1;di<=1;di++){
+                    for(let dj=-1;dj<=1;dj++){
+                        const ni=i+di, nj=j+dj;
+                        if(ni>=0&&ni<this.r&&nj>=0&&nj<this.c&&this.cells[ni][nj]===-1) count++;
+                    }
+                }
+                this.cells[i][j]=count;
+            }
+        }
+    }
+    reveal(i,j){
+        if(this.revealed[i][j]||this.flagged[i][j]) return;
+        this.revealed[i][j]=true;
+        if(this.cells[i][j]===0){
+            for(let di=-1;di<=1;di++){
+                for(let dj=-1;dj<=1;dj++){
+                    const ni=i+di, nj=j+dj;
+                    if(ni>=0&&ni<this.r&&nj>=0&&nj<this.c) this.reveal(ni,nj);
+                }
+            }
+        }
+    }
+    chord(i,j){
+        if(!this.revealed[i][j]||this.cells[i][j]<=0) return;
+        let fc=0;
+        for(let di=-1;di<=1;di++){
+            for(let dj=-1;dj<=1;dj++){
+                const ni=i+di, nj=j+dj;
+                if(ni>=0&&ni<this.r&&nj>=0&&nj<this.c&&this.flagged[ni][nj]) fc++;
+            }
+        }
+        if(fc===this.cells[i][j]){
+            for(let di=-1;di<=1;di++){
+                for(let dj=-1;dj<=1;dj++){
+                    const ni=i+di, nj=j+dj;
+                    if(ni>=0&&ni<this.r&&nj>=0&&nj<this.c&&!this.revealed[ni][nj]&&!this.flagged[ni][nj]){
+                        this.reveal(ni,nj);
+                        if(this.cells[ni][nj]===-1) return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+}
+
+/* ===========================
+   DOM & RENDER
+=========================== */
+function renderGrid(){
+    const cont = $("grid-container");
+    cont.innerHTML="";
+    cont.style.gridTemplateColumns=`repeat(${GRID.c},1fr)`;
+    for(let i=0;i<GRID.r;i++){
+        for(let j=0;j<GRID.c;j++){
+            const cell = document.createElement("div");
+            cell.className="cell";
+            if(GRID.revealed[i][j]){
+                cell.classList.add("revealed");
+                if(GRID.cells[i][j]===-1) cell.classList.add("mine"), cell.textContent="💣";
+                else if(GRID.cells[i][j]>0) cell.textContent=GRID.cells[i][j];
+            }else if(GRID.flagged[i][j]){
+                cell.classList.add("flagged"); cell.textContent="🚩";
+            }
+            cell.oncontextmenu=e=>{e.preventDefault(); toggleFlag(i,j);};
+            cell.onmousedown=e=>{
+                if(e.button===0){
+                    if(GRID.revealed[i][j]&&GRID.cells[i][j]>0) GRID.chord(i,j)?renderGrid():endGame(false);
+                    else clickCell(i,j);
+                }
+            };
+            cont.appendChild(cell);
+        }
+    }
+}
+
+/* ===========================
+   ACTIONS
+=========================== */
+function clickCell(i,j){
+    if(GRID.revealed[i][j]||GRID.flagged[i][j]) return;
+    SOCKET.emit("reveal",{i,j});
+    GRID.reveal(i,j);
+    if(GRID.cells[i][j]===-1) return endGame(false);
+    checkWin();
+    renderGrid();
+}
+function toggleFlag(i,j){
+    if(GRID.revealed[i][j]) return;
+    GRID.flagged[i][j]=!GRID.flagged[i][j];
+    renderGrid();
+}
+function endGame(won){
+    alert(won?"You Win!":"Game Over");
+    if(won){
+        const exp = Math.floor(ROWS*COLS/MINES*10);
+        const coins = Math.floor(MINES*PLAYER.getStat("luck")*5);
+        PLAYER.gainExp(exp);
+        PLAYER.coins+=coins;
+        $("coins").textContent=PLAYER.coins;
+        lootDrop();
+    }
+    resetGame();
+}
+function checkWin(){
+    let rev=0;
+    for(let i=0;i<GRID.r;i++){
+        for(let j=0;j<GRID.c;j++) if(GRID.revealed[i][j]) rev++;
+    }
+    if(rev===GRID.r*GRID.c-GRID.m) endGame(true);
+}
+function lootDrop(){
+    if(Math.random()<0.3){
+        const gear=new Gear("Rare Mouse","rare",{speed:1.2});
+        PLAYER.inventory.add(gear);
+        alert("Loot! "+gear.name);
+    }
+}
+
+/* ===========================
+   UI
+=========================== */
+function login(){
+    const name=$("username").value.trim();
+    if(!name) return;
+    PLAYER=new Player(name);
+    $("playerName").textContent=name;
+    $("login").style.display="none";
+    $("game").style.display="block";
+    resetGame();
+}
+function resetGame(){
+    GRID=new Grid(ROWS,COLS,MINES);
+    renderGrid();
+}
+function toggleInv(){
+    const inv=$("inventory");
+    inv.style.display=inv.style.display==="none"?"block":"none";
+    renderInv();
+}
+function renderInv(){
+    const slots=$("invSlots");
+    slots.innerHTML="";
+    PLAYER.inventory.slots.forEach((item,i)=>{
+        const div=document.createElement("div");
+        div.className="invSlot";
+        div.textContent=item?item.name.slice(0,4):"";
+        div.onclick=()=>equip(i);
+        slots.appendChild(div);
     });
-  }
+}
+function equip(idx){
+    const item=PLAYER.inventory.remove(idx);
+    if(!item) return;
+    PLAYER.equipment[item.name]=item;
+    alert("Equipped "+item.name);
+    renderInv();
 }
 
-/* ----------------- EVENT LISTENERS ----------------- */
-document.getElementById('toggleDark').addEventListener('click',()=>document.body.classList.toggle('light'));
-document.getElementById('openInventory').addEventListener('click',showInventory);
-document.getElementById('openShop').addEventListener('click',showShop);
-document.getElementById('restart').addEventListener('click',startFloor);
-
-/* ----------------- INIT ----------------- */
-createDungeonSelector();
-
-/* ----------------- ENEMIES & BOSS ----------------- */
-let boss = null;
-
-// Spawn mini-enemies on the floor
-function spawnEnemies(){
-  if(!board) return;
-  enemies = Array(board.length).fill().map(()=>Array(board[0].length).fill(null));
-  for(let r=0;r<board.length;r++){
-    for(let c=0;c<board[0].length;c++){
-      if(Math.random() < 0.05 && board[r][c] !== 'M'){ // 5% chance per cell
-        enemies[r][c] = {hp:5, icon:'👾'};
-      }
-    }
-  }
-}
-
-// Draw enemies on the board
-function drawEnemies(){
-  const boardEl = document.getElementById('board');
-  if(!boardEl) return;
-  for(let r=0;r<board.length;r++){
-    for(let c=0;c<board[0].length;c++){
-      const cell = boardEl.children[r*board[0].length + c];
-      if(enemies[r][c] && !revealed[r][c]) cell.textContent = enemies[r][c].icon;
-    }
-  }
-}
-
-// Attack enemy at cell
-function attackEnemy(r,c){
-  if(!enemies[r][c]) return;
-  enemies[r][c].hp -= player.gearScore || 1;
-  const boardEl = document.getElementById('board');
-  const rect = boardEl?.children[r*board[0].length+c]?.getBoundingClientRect();
-  const x = rect ? rect.left + rect.width/2 : 0;
-  const y = rect ? rect.top : 0;
-  showFloatingDamage('-'+(player.gearScore||1), x, y);
-  if(enemies[r][c].hp <= 0) enemies[r][c] = null;
-  updateBoardUI();
-  if(boss) damageBoss(player.gearScore||1);
-}
-
-// Boss system
-function spawnBoss(hp){
-  boss = {hp:hp, maxHp:hp};
-  const statsEl = document.getElementById('stats');
-  if(!document.getElementById('bossBar')){
-    const div = document.createElement('div');
-    div.id = 'bossBarContainer';
-    div.innerHTML = 'Boss HP: <div class="bar-bg"><div id="bossBar" class="bar-fill"></div></div>';
-    statsEl.appendChild(div);
-  }
-  updateHeaderBars();
-}
-
-function damageBoss(amount){
-  if(!boss) return;
-  boss.hp -= amount;
-  if(boss.hp < 0) boss.hp = 0;
-  updateHeaderBars();
-}
-
-// Floating damage numbers
-function showFloatingDamage(text,x,y){
-  const dmgEl = document.createElement('div');
-  dmgEl.textContent = text;
-  dmgEl.style.position = 'absolute';
-  dmgEl.style.left = x+'px';
-  dmgEl.style.top = y+'px';
-  dmgEl.style.color = 'red';
-  dmgEl.style.fontWeight = 'bold';
-  dmgEl.style.pointerEvents = 'none';
-  dmgEl.style.transition = 'all 1s ease';
-  dmgEl.style.zIndex = '200';
-  document.body.appendChild(dmgEl);
-  setTimeout(()=>{
-    dmgEl.style.top = (y-30)+'px';
-    dmgEl.style.opacity='0';
-  },10);
-  setTimeout(()=>dmgEl.remove(),1000);
-}
-
-// Update header bars including boss
-function updateHeaderBars(){
-  const hpPercent = (player.hp/player.maxHp)*100;
-  const xpPercent = (player.xp/player.xpToNext)*100;
-  const coinPercent = Math.min(player.coins/100,1)*100;
-  document.getElementById('playerHP').textContent = player.hp;
-  document.getElementById('playerMaxHP').textContent = player.maxHp;
-  document.getElementById('playerXP').textContent = player.xp+'/'+player.xpToNext;
-  document.getElementById('playerCoins').textContent = player.coins;
-
-  const bossBar = document.getElementById('bossBar');
-  if(boss && bossBar){
-    bossBar.style.width = (boss.hp/boss.maxHp*100)+'%';
-  }
-}
-
-// Hook revealCell to enemies and boss
-const originalRevealCell = revealCell;
-revealCell = function(r,c){
-  const boardEl = document.getElementById('board');
-  const rect = boardEl?.children[r*board[0].length+c]?.getBoundingClientRect();
-  const x = rect ? rect.left + rect.width/2 : 0;
-  const y = rect ? rect.top : 0;
-
-  const cellValue = board[r][c];
-  originalRevealCell(r,c);
-
-  if(cellValue === 'M') showFloatingDamage('-5', x, y);
-  if(enemies[r][c]) attackEnemy(r,c);
-  if(boss && cellValue === 'M') damageBoss(5); // mines damage boss
-};
-
+/* init */
+document.addEventListener("DOMContentLoaded",()=>{
+    /* add middle-click chord */
+    document.addEventListener("auxclick",e=>{
+        if(e.button===1) e.preventDefault();
+    });
+});
