@@ -1,9 +1,9 @@
 /* ----------------- GAME DATA ----------------- */
 const worlds = [
-  {name:'Tutorial', floors:1, unlocked:true},
-  {name:'Forest', floors:3, unlocked:false},
-  {name:'Caverns', floors:3, unlocked:false},
-  {name:'Peaks', floors:4, unlocked:false},
+  {name:'Tutorial', floors:1, unlocked:true, boss:false},
+  {name:'Forest', floors:3, unlocked:false, boss:false},
+  {name:'Caverns', floors:3, unlocked:false, boss:false},
+  {name:'Peaks', floors:4, unlocked:false, boss:false},
   {name:'Citadel', floors:1, unlocked:false, boss:true}
 ];
 
@@ -58,6 +58,8 @@ function startFloor(floorIndex){
   enemies=Array(size).fill().map(()=>Array(size).fill(null));
   placeMines(size,mines);
   placeEnemies(size);
+  if(worlds[dungeon.world].boss) showBossOverlay();
+  else hideBossOverlay();
   updateBoardUI();
 }
 
@@ -96,13 +98,21 @@ function revealCell(r,c){
   if(revealed[r][c]||gameOver) return;
   revealed[r][c]=true;
   if(board[r][c]==='M'){
-    player.hp-=5;
+    let damage=5;
+    if(player.inventory.armor==='Iron Armor') damage*=0.7;
+    player.hp-=Math.floor(damage);
     if(player.hp<=0){gameOver=true; player.hp=0; document.getElementById('message').textContent='You Died!'; return;}
-    document.getElementById('message').textContent='Hit a mine! -5 HP';
+    document.getElementById('message').textContent='Hit a mine! -'+Math.floor(damage)+' HP';
+    if(worlds[dungeon.world].boss) attackBoss(Math.floor(damage*0.5));
   } else if(board[r][c]===0){ for(let dr=-1;dr<=1;dr++){for(let dc=-1;dc<=1;dc++){
     const nr=r+dr,nc=c+dc; if(nr>=0 && nr<board.length && nc>=0 && nc<board[0].length) revealCell(nr,nc);
   }}}
-  if(enemies[r][c]) document.getElementById('message').textContent='Enemy found: '+enemies[r][c]+'!';
+  if(enemies[r][c]){
+    let dmg=5; if(player.inventory.weapon==='Iron Pickaxe') dmg+=2;
+    document.getElementById('message').textContent='Enemy found: '+enemies[r][c]+'! Dealt '+dmg+' damage to it';
+    if(worlds[dungeon.world].boss) attackBoss(dmg);
+    enemies[r][c]=null;
+  }
   updateBoardUI();
   checkWin();
 }
