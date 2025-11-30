@@ -12,42 +12,25 @@ body{display:flex;justify-content:center;align-items:center;min-height:100vh;bac
 button{cursor:pointer;border:1px solid var(--accent);background:var(--panel);color:var(--text);padding:6px 12px;border-radius:4px}
 input{padding:8px 12px;border:1px solid var(--accent);background:var(--panel);color:var(--text);border-radius:4px}
 
-/* LOGIN */
 #login{text-align:center;margin-bottom:20px}
+#hub{display:none;width:400px}#hub-top{display:flex;justify-content:space-between;margin-bottom:15px}#realm-portal h2{margin-bottom:10px;text-align:center}#world-buttons{display:flex;gap:8px;flex-wrap:wrap}#world-buttons button{flex:1 1 30%}
 
-/* HUB */
-#hub{display:none;width:400px}
-#hub-top{display:flex;justify-content:space-between;margin-bottom:15px}
-#realm-portal h2{margin-bottom:10px;text-align:center}
-#world-buttons{display:flex;gap:8px;flex-wrap:wrap}
-#world-buttons button{flex:1 1 30%}
+#world{display:none}#world-top{display:flex;justify-content:space-between;margin-bottom:10px}#enemy-bar{margin-bottom:10px}
 
-/* WORLD */
-#world{display:none}
-#world-top{display:flex;justify-content:space-between;margin-bottom:10px}
-#enemy-bar{margin-bottom:10px}
+#raid-lobby{display:none;text-align:center}#queue-list{margin:10px 0;max-height:150px;overflow-y:auto;background:var(--panel);padding:10px;border-radius:4px}
+#raid-fight{display:none}#boss-bar{margin-bottom:10px;text-align:center}#boss-hp-bg{width:100%;height:20px;background:#444;border-radius:10px;overflow:hidden;margin-top:5px}#boss-hp-fill{height:100%;background:var(--boss);width:100%;transition:width .3s}
 
-/* RAID */
-#raid-lobby{display:none;text-align:center}
-#queue-list{margin:10px 0;max-height:150px;overflow-y:auto;background:var(--panel);padding:10px;border-radius:4px}
-#raid-fight{display:none}
-#boss-bar{margin-bottom:10px;text-align:center}
-#boss-hp-bg{width:100%;height:20px;background:#444;border-radius:10px;overflow:hidden;margin-top:5px}
-#boss-hp-fill{height:100%;background:var(--boss);width:100%;transition:width .3s}
-
-/* INVENTORY (RotMG) */
 #inventory{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border:1px solid var(--accent);border-radius:6px;padding:20px;width:340px}
 #inv-slots{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:15px}
 .inv-slot{width:36px;height:36px;background:#000;border:1px solid #555;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer}
 #equip-slots{display:flex;justify-content:space-around;margin-bottom:15px}
 .equip-slot{width:80px;height:80px;background:#000;border:2px solid #777;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px}
 
-/* GRIDS */
 .grid{display:grid;gap:2px;background:#444;padding:10px;border-radius:5px}
-.cell{width:30px;height:30px;background:#666;border:1px solid #888;display:flex;align-items:center;justify-content:center;font-weight:700;user-select:none;position:relative}
-.cell.revealed{background:#333;border-color:#fff}
+.cell{width:30px;height:30px;background:#666;border:1px solid #888;display:flex;align-items:center;justify-content:center;font-weight:700;user-select:none;position:relative;transition:transform .1s}
+.cell:hover{transform:scale(1.08)}
+.cell.revealed{background:#333;border-color:#fff;cursor:default}
 .cell.mine{background:var(--mine)}
 .cell.flagged{background:#ffcc00}
-/* enemy overlay */
 .cell.enemy::after{content:"👹";position:absolute;top:-8px;right:-8px;font-size:14px;color:var(--enemy)}
 .cell.boss-hand::after{content:"👾";position:absolute;top:-8px;right:-8px;font-size:16px;color:var(--boss)}
