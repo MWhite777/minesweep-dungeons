@@ -1,4 +1,22 @@
-window.onload = function () { alert("JS loaded – entering hub"); login(); };
+/*********************************************************************
+ * 0.  BULLET-PROOF STARTER (no black screen)
+ *********************************************************************/
+window.onload = function () {
+    document.getElementById("login").style.display = "block";   // show login first
+    document.getElementById("hub").style.display   = "none";    // hide hub until Play
+    document.getElementById("world").style.display = "none";
+    document.getElementById("inventory").style.display = "none";
+};
+function login() {
+    const name = document.getElementById("username").value.trim();
+    if (!name) return;
+    document.getElementById("login").style.display = "none";
+    document.getElementById("hub").style.display = "block";
+    // ---- initialise your full game below ----
+    window.PLAYER = new Player(name);
+    updateHub();
+    buildWorldButtons();
+}
 
 /*********************************************************************
  * 0. UTILS
