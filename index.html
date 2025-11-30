@@ -7,35 +7,71 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- ==========  PRE-GAME  ========== -->
     <div id="login">
         <h1>Mindsweeper MMO</h1>
         <input id="username" placeholder="Enter username">
         <button onclick="login()">Play</button>
     </div>
 
-    <div id="game" style="display:none">
-        <div id="hud">
-            <span id="playerName"></span>
-            <span>Level <span id="level">1</span></span>
-            <span>EXP <span id="exp">0</span></span>
-            <span>Mines <span id="mineCount">0</span></span>
-            <span>Coins <span id="coins">0</span></span>
-            <button onclick="toggleInv()">Inventory</button>
+    <!-- ==========  HUB  ========== -->
+    <div id="hub" style="display:none">
+        <div id="hub-top">
+            <span id="hubName"></span>
+            <span>Level <span id="hubLevel">1</span></span>
+            <span>Coins <span id="hubCoins">0</span></span>
+            <button onclick="openInventory()">Inventory</button>
+            <button onclick="openRaidQueue()">Raid Queue</button>
         </div>
-
-        <div id="diff-buttons">
-            <button onclick="setDiff('beginner')">Beginner</button>
-            <button onclick="setDiff('intermediate')">Intermediate</button>
-            <button onclick="setDiff('expert')">Expert</button>
+        <div id="realm-portal">
+            <h2>Realm Portal</h2>
+            <div id="world-buttons"></div>
         </div>
+    </div>
 
+    <!-- ==========  WORLD / NORMAL GRID  ========== -->
+    <div id="world" style="display:none">
+        <div id="world-top">
+            <span id="worldName"></span>
+            <span>World <span id="worldId">1</span></span>
+            <button onclick="exitWorld()">Exit</button>
+        </div>
+        <div id="enemy-bar">
+            <span>Enemies: <span id="enemyCount">0</span></span>
+        </div>
         <div id="grid-container" class="grid"></div>
+    </div>
 
-        <div id="inventory" style="display:none">
-            <h2>Inventory</h2>
-            <div id="invSlots"></div>
-            <button onclick="toggleInv()">Close</button>
+    <!-- ==========  RAID LOBBY  ========== -->
+    <div id="raid-lobby" style="display:none">
+        <h2>Raid Lobby</h2>
+        <div id="queue-list"></div>
+        <button onclick="joinQueue()">Join Queue</button>
+        <button onclick="leaveQueue()">Leave</button>
+    </div>
+
+    <!-- ==========  RAID BOSS FIGHT  ========== -->
+    <div id="raid-fight" style="display:none">
+        <div id="boss-bar">
+            <span id="boss-name">Grid Guardian</span>
+            <div id="boss-hp-bg"><div id="boss-hp-fill"></div></div>
         </div>
+        <div id="raid-grid-container" class="grid"></div>
+        <div id="raid-party">
+            <!-- party frames injected here -->
+        </div>
+    </div>
+
+    <!-- ==========  INVENTORY  (RotMG style)  ========== -->
+    <div id="inventory" style="display:none">
+        <h2>Inventory</h2>
+        <div id="inv-slots"></div>
+        <div id="equip-slots">
+            <div class="equip-slot" data-type="weapon">Weapon</div>
+            <div class="equip-slot" data-type="armor">Armor</div>
+            <div class="equip-slot" data-type="ring">Ring</div>
+        </div>
+        <button onclick="closeInventory()">Close</button>
     </div>
 
     <script src="script.js"></script>
