@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Mindsweeper MMO</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
     <div id="login">
         <h1>Mindsweeper MMO</h1>
-        <input id="username" placeholder="Enter username" />
+        <input id="username" placeholder="Enter username" maxlength="12"/>
         <button onclick="login()">Play</button>
     </div>
 
@@ -21,6 +21,12 @@
             <span>Mines <span id="mineCount">0</span></span>
             <span>Coins <span id="coins">0</span></span>
             <button onclick="toggleInv()">Inventory</button>
+        </div>
+
+        <div id="diff-buttons">
+            <button onclick="setDiff('beginner')">Beginner</button>
+            <button onclick="setDiff('intermediate')">Intermediate</button>
+            <button onclick="setDiff('expert')">Expert</button>
         </div>
 
         <div id="grid-container"></div>
