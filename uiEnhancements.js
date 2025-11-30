@@ -1,13 +1,12 @@
-// ----------------- uiEnhancements.js (mine damage floats included) -----------------
-
+// ----------------- uiEnhancements.js (enemies & boss included) -----------------
 (function(){
-  // ----------------- THEMED GRIDS -----------------
+  /* ----------------- THEMED GRIDS ----------------- */
   const zoneThemes = [
-    {bg:'#d0f0ff', cell:'#a0e0ff'},
-    {bg:'#dfffd0', cell:'#b0ffb0'},
-    {bg:'#ffd0d0', cell:'#ffb0b0'},
-    {bg:'#e0d0ff', cell:'#c0b0ff'},
-    {bg:'#aaa', cell:'#888'}
+    {bg:'#d0f0ff', cell:'#a0e0ff'}, // Tutorial Village
+    {bg:'#dfffd0', cell:'#b0ffb0'}, // Forest of Shadows
+    {bg:'#ffd0d0', cell:'#ffb0b0'}, // Fiery Peaks
+    {bg:'#e0d0ff', cell:'#c0b0ff'}, // Crystal Caverns
+    {bg:'#aaa', cell:'#888'}         // Dark Citadel
   ];
 
   function applyGridTheme() {
@@ -22,7 +21,7 @@
     }
   }
 
-  // ----------------- CELL ANIMATIONS -----------------
+  /* ----------------- CELL ANIMATIONS ----------------- */
   const cellAnimationDuration = 300;
   function animateCellReveal(cell) {
     if(!cell.classList.contains('revealed')) return;
@@ -31,7 +30,7 @@
     setTimeout(()=>{cell.style.transform='scale(1)';},10);
   }
 
-  // ----------------- HEADER BARS -----------------
+  /* ----------------- HEADER BARS ----------------- */
   function createHeaderBars() {
     const statsEl = document.getElementById('stats');
     if(!statsEl) return;
@@ -40,6 +39,9 @@
       <div>HP: <div class="bar-bg"><div id="hpBar" class="bar-fill"></div></div></div>
       <div>XP: <div class="bar-bg"><div id="xpBar" class="bar-fill"></div></div></div>
       <div>Coins: <div class="bar-bg"><div id="coinBar" class="bar-fill"></div></div></div>
+      <div id="bossBarContainer" style="display:none; margin-top:5px;">
+        Boss HP: <div class="bar-bg"><div id="bossBar" class="bar-fill"></div></div>
+      </div>
     `;
   }
 
@@ -51,9 +53,14 @@
     document.getElementById('hpBar').style.width = hpPercent+'%';
     document.getElementById('xpBar').style.width = xpPercent+'%';
     document.getElementById('coinBar').style.width = coinPercent+'%';
+    if(window.boss && document.getElementById('bossBar')){
+      const bossPercent = (boss.hp/boss.maxHp)*100;
+      document.getElementById('bossBar').style.width = bossPercent+'%';
+      document.getElementById('bossBarContainer').style.display='block';
+    }
   }
 
-  // ----------------- SLIDING PANELS -----------------
+  /* ----------------- SLIDING PANELS ----------------- */
   function setupSlidingPanels() {
     ['inventory','shop','dungeonSelector'].forEach(id => {
       const el = document.getElementById(id);
@@ -84,7 +91,7 @@
     el.style.right = (el.style.right==='0px') ? '-650px' : '0px';
   }
 
-  // ----------------- FLOATING DAMAGE NUMBERS -----------------
+  /* ----------------- FLOATING DAMAGE NUMBERS ----------------- */
   window.showFloatingDamage = function(text, x, y) {
     const dmgEl = document.createElement('div');
     dmgEl.textContent = text;
@@ -104,7 +111,59 @@
     setTimeout(()=>{dmgEl.remove();},1000);
   }
 
-  // ----------------- HOOK INTO BOARD UI -----------------
+  /* ----------------- ENEMY SYSTEM ----------------- */
+  window.spawnEnemies = function(){
+    if(!window.board) return;
+    window.enemies = [];
+    for(let r=0;r<board.length;r++){
+      enemies[r] = [];
+      for(let c=0;c<board[0].length;c++){
+        if(Math.random()<0.05){ // 5% chance enemy
+          enemies[r][c] = {hp:5, icon:'👾'};
+        } else enemies[r][c] = null;
+      }
+    }
+  };
+
+  function drawEnemies(){
+    const boardEl = document.getElementById('board');
+    if(!boardEl || !window.enemies) return;
+    for(let r=0;r<board.length;r++){
+      for(let c=0;c<board[0].length;c++){
+        const cell = boardEl.children[r*board[0].length+c];
+        if(enemies[r][c] && !cell.classList.contains('revealed')){
+          cell.textContent = enemies[r][c].icon;
+        }
+      }
+    }
+  }
+
+  function attackEnemy(r,c){
+    if(!enemies[r][c]) return;
+    enemies[r][c].hp -= player.gearScore||1;
+    const boardEl = document.getElementById('board');
+    const rect = boardEl?.children[r*board[0].length + c]?.getBoundingClientRect();
+    const x = rect ? rect.left + rect.width/2 : 0;
+    const y = rect ? rect.top : 0;
+    showFloatingDamage('-'+(player.gearScore||1), x, y);
+    if(enemies[r][c].hp<=0) enemies[r][c]=null;
+    updateBoardUI();
+  }
+
+  /* ----------------- BOSS SYSTEM ----------------- */
+  window.spawnBoss = function(hp){
+    window.boss = {hp:hp, maxHp:hp};
+    updateHeaderBars();
+  };
+
+  window.damageBoss = function(amount){
+    if(!window.boss) return;
+    boss.hp -= amount;
+    if(boss.hp<0) boss.hp=0;
+    updateHeaderBars();
+  };
+
+  /* ----------------- HOOK INTO BOARD UI ----------------- */
   function hookBoardUI(){
     if(typeof updateBoardUI !== 'function') return;
     const original = updateBoardUI;
@@ -116,11 +175,12 @@
         c.addEventListener('mouseout',()=>c.style.boxShadow='none');
         if(c.classList.contains('revealed')) animateCellReveal(c);
       });
+      drawEnemies();
       updateHeaderBars();
     };
   }
 
-  // ----------------- HOOK INTO revealCell FOR MINE DAMAGE -----------------
+  /* ----------------- HOOK INTO revealCell FOR MINE DAMAGE & ENEMY DAMAGE ----------------- */
   function hookRevealCell(){
     if(typeof revealCell !== 'function') return;
     const original = revealCell;
@@ -136,11 +196,16 @@
 
       if(cellValue === 'M'){
         showFloatingDamage('-5', x, y);
+        if(window.boss) damageBoss(5);
+      }
+      if(enemies[r][c]){
+        attackEnemy(r,c);
+        if(window.boss) damageBoss(player.gearScore||1);
       }
     };
   }
 
-  // ----------------- CSS for Header Bars & Panels -----------------
+  /* ----------------- CSS for Header Bars & Panels ----------------- */
   const styleEl = document.createElement('style');
   styleEl.innerHTML = `
   .bar-bg { width: 100%; height: 15px; background: #555; border-radius: 7px; margin: 2px 0; }
@@ -149,9 +214,10 @@
   `;
   document.head.appendChild(styleEl);
 
-  // ----------------- INIT -----------------
+  /* ----------------- INIT ----------------- */
   createHeaderBars();
   setupSlidingPanels();
   hookBoardUI();
   hookRevealCell();
+  spawnEnemies(); // initial enemies
 })();
