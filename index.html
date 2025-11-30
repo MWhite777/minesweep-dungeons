@@ -1,113 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delve: The Shattered Grid</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minesweeper MMO RPG</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div id="header">
+  <div id="stats">
+    Level: <span id="playerLevel">1</span> |
+    HP: <span id="playerHP">20</span>/<span id="playerMaxHP">20</span> |
+    Coins: <span id="playerCoins">0</span> |
+    XP: <span id="playerXP">0</span>
+  </div>
+  <div id="buttons">
+    <button id="toggleDark">Toggle Dark/Light</button>
+    <button id="openInventory">Inventory</button>
+    <button id="openShop">Shop</button>
+    <button id="restart">Restart Floor</button>
+  </div>
+</div>
 
-    <!-- Class Selection Screen -->
-    <div id="class-selection" class="screen active">
-        <div class="modal-content">
-            <h1>Choose Your Class</h1>
-            <div class="class-cards">
-                <div class="class-card" data-class="Striker">
-                    <h3>Striker</h3>
-                    <p>A master of offense. Deals high damage with every reveal.</p>
-                </div>
-                <div class="class-card" data-class="Guardian">
-                    <h3>Guardian</h3>
-                    <p>A sturdy defender. Has more health and can shield from damage.</p>
-                </div>
-                <div class="class-card" data-class="Oracle">
-                    <h3>Oracle</h3>
-                    <p>A wise support. Can reveal tiles and has powerful utility skills.</p>
-                </div>
-            </div>
-            <p><strong>Controls:</strong> Left Click to Reveal, Right Click to Flag, Ctrl+Click to Chord.</p>
-        </div>
-    </div>
+<div id="dungeonSelector"></div>
+<div id="board"></div>
+<div id="message"></div>
+<div id="inventory" class="hidden"></div>
+<div id="shop" class="hidden"></div>
+<div id="players"></div>
 
-    <!-- Hub Screen -->
-    <div id="hub-screen" class="screen">
-        <div class="modal-content">
-            <h1>The Bastion</h1>
-            <div id="hub-player-info"></div>
-            <button id="hub-practice-btn">Practice Grounds</button>
-            <button id="hub-map-btn">World Map</button>
-            <button id="hub-shop-btn">Shop</button>
-        </div>
-    </div>
-
-    <!-- World Map Screen -->
-    <div id="world-map-screen" class="screen">
-        <div class="modal-content">
-            <button id="map-back-btn">Back to Hub</button>
-            <div class="map-node" id="node-1" data-zone-id="1">1</div>
-            <div class="map-node" id="node-2" data-zone-id="2">2</div>
-            <div class="map-node locked" id="node-3" data-zone-id="3">3</div>
-        </div>
-    </div>
-
-    <!-- Shop Screen -->
-    <div id="shop-screen" class="screen">
-        <div class="modal-content">
-            <h1>Shop</h1>
-            <p id="shop-player-gold"></p>
-            <div id="shop-items"></div>
-            <button id="shop-back-btn">Leave Shop</button>
-        </div>
-    </div>
-
-    <!-- Game Screen -->
-    <div id="game-container" class="screen">
-        <button id="back-to-hub-btn">Flee to Hub</button>
-        <div id="game-top-bar">
-            <div id="player-stats">
-                <h2 id="player-class-display"></h2>
-                <p>Level: <span id="player-level">1</span></p>
-                <p>Health: <span id="player-health-text">100</span> / <span id="player-max-health-text">100</span></p>
-                <div class="health-bar-container"><div id="player-health-bar" style="width: 100%;"></div></div>
-                <p>Damage: <span id="player-damage">5</span></p>
-                <p>Gold: <span id="player-gold">0</span> | XP: <span id="player-xp">0</span>/<span id="player-xp-to-next">100</span></p>
-            </div>
-            <div id="enemy-stats">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <div id="enemy-portrait"></div>
-                    <div>
-                        <h2 id="enemy-name">Enemy</h2>
-                        <p>Health: <span id="enemy-health-text">50</span> / <span id="enemy-max-health-text">50</p>
-                        <div class="health-bar-container"><div id="enemy-health-bar" style="width: 100%;"></div></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="game-area">
-            <div id="grid-container"></div>
-            <div id="side-panel">
-                <div class="panel">
-                    <h2>Skills</h2>
-                    <button id="skill-1">Skill</button>
-                </div>
-                <div class="panel">
-                    <h2>Combat Log</h2>
-                    <div id="log"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Game Over/Victory Modal (overlays game screen) -->
-    <div id="result-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 1000; justify-content: center; align-items: center;">
-        <div class="modal-content">
-            <h2 id="result-title"></h2>
-            <p id="result-message"></p>
-            <button id="result-continue-btn">Continue</button>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
