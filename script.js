@@ -4,7 +4,7 @@
 const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 /*********************************************************************
- *  2.  ROTMG-STYLE ITEMS / STATS
+ *  2.  ITEMS / STATS
  *********************************************************************/
 const ITEM_DB = {
     /* weapons */
