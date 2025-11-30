@@ -4,15 +4,18 @@ function login() {
     alert("Play pressed – entering hub");
     document.getElementById("login").style.display = "none";
     document.getElementById("hub").style.display = "block";
+    window.PLAYER = new Player(document.getElementById("username").value.trim());
+    updateHub();
+    buildWorldButtons();
 }
 
-document.body.style.background = "#222";   // make sure body is visible
-
 /*********************************************************************
- * 0. UTILS
+ * 0. UTILS & GLOBALS
  *********************************************************************/
 const $ = id => document.getElementById(id);
 const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+let PLAYER, CURRENT_WORLD, RAID_BOSS, QUEUE = [];
+let GAME_OVER = false;
 
 /*********************************************************************
  * 1. PLAYER + GEAR
@@ -61,7 +64,6 @@ const ITEM_DB = {
     "Gridreaver": { type: "weapon", tier: 5, stats: { clickDmg: 2.0, chordPower: 1.2 } },
     "Minelord Blade": { type: "weapon", tier: 6, stats: { clickDmg: 2.3 } },
     "Void Clicksword": { type: "weapon", tier: 7, stats: { clickDmg: 2.6, chordPower: 1.4 } },
-
     "Cloth Robe": { type: "armor", tier: 1, stats: { def: 0.95 } },
     "Leather Armor": { type: "armor", tier: 2, stats: { def: 0.9 } },
     "Chainmail": { type: "armor", tier: 3, stats: { def: 0.85 } },
@@ -69,7 +71,6 @@ const ITEM_DB = {
     "Reinforced Mail": { type: "armor", tier: 5, stats: { def: 0.75 } },
     "Minelord Mail": { type: "armor", tier: 6, stats: { def: 0.7, hp: 1.2 } },
     "Void Armor": { type: "armor", tier: 7, stats: { def: 0.65, hp: 1.3 } },
-
     "Speed Ring": { type: "ring", tier: 3, stats: { speed: 1.3 } },
     "Loot Ring": { type: "ring", tier: 4, stats: { luck: 1.4 } },
     "HP Ring": { type: "ring", tier: 5, stats: { hp: 1.2 } },
@@ -85,7 +86,7 @@ function randomItem(tierMin, tierMax, type = null) {
 }
 
 /*********************************************************************
- * 2. GRID CORE (kept from old version)
+ * 2. GRID CORE (classic + chord)
  *********************************************************************/
 class Grid {
     constructor(r, c, m) {
@@ -150,7 +151,7 @@ class Grid {
 }
 
 /*********************************************************************
- * 3. ENEMY (inside normal worlds)
+ * 3. ENEMY (inside worlds)
  *********************************************************************/
 class Enemy {
     constructor(world, cell) {
@@ -180,7 +181,7 @@ class Enemy {
 }
 
 /*********************************************************************
- * 4. WORLD (normal grinding, 6 worlds)
+ * 4. WORLD (6 worlds, difficulty rises)
  *********************************************************************/
 const WORLD_DIFF = [
     { r: 9,  c: 9,  m: 10 },  // World 1
@@ -485,17 +486,8 @@ function resetToHub() {
 }
 
 /*********************************************************************
- * 11. LOGIN
+ * 11. EVENTS
  *********************************************************************/
-function login() {
-    const name = $("username").value.trim();
-    if (!name) return;
-    PLAYER = new Player(name);
-    $("login").style.display = "none";
-    goToHub();
-}
-
-/* on load */
 document.addEventListener("DOMContentLoaded", () => {
     document.oncontextmenu = () => false;
 });
