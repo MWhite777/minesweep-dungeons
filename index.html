@@ -1,37 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Minesweeper MMO RPG</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Mindsweeper MMO</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div id="header">
-  <div id="stats">
-    Level: <span id="playerLevel">1</span> |
-    HP: <span id="playerHP">20</span>/<span id="playerMaxHP">20</span> |
-    Coins: <span id="playerCoins">0</span> |
-    XP: <span id="playerXP">0</span>
-  </div>
-  <div id="buttons">
-    <button id="toggleDark">Toggle Dark/Light</button>
-    <button id="openInventory">Inventory</button>
-    <button id="openShop">Shop</button>
-    <button id="restart">Restart Floor</button>
-  </div>
-</div>
+    <div id="login">
+        <h1>Mindsweeper MMO</h1>
+        <input id="username" placeholder="Enter username" />
+        <button onclick="login()">Play</button>
+    </div>
 
-<div id="dungeonSelector">
-  <label><input type="checkbox" id="nfModeToggle"> No-Flags Mode (NF)</label>
-</div>
+    <div id="game" style="display:none">
+        <div id="hud">
+            <span id="playerName"></span>
+            <span>Level <span id="level">1</span></span>
+            <span>EXP <span id="exp">0</span></span>
+            <span>Mines <span id="mineCount">0</span></span>
+            <span>Coins <span id="coins">0</span></span>
+            <button onclick="toggleInv()">Inventory</button>
+        </div>
 
-<div id="board"></div>
-<div id="message"></div>
-<div id="inventory" class="hidden"></div>
-<div id="shop" class="hidden"></div>
-<div id="players"></div>
+        <div id="grid-container"></div>
 
-<script src="script.js"></script>
+        <div id="inventory" style="display:none">
+            <h2>Inventory</h2>
+            <div id="invSlots"></div>
+            <button onclick="toggleInv()">Close</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
