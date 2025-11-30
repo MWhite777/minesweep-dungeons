@@ -7,14 +7,14 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- ==========  PRE-GAME  ========== -->
+    <!-- ========== LOGIN ========== -->
     <div id="login">
         <h1>Mindsweeper MMO</h1>
-        <input id="username" placeholder="Enter username">
+        <input id="username" placeholder="Enter username" maxlength="12">
         <button onclick="login()">Play</button>
     </div>
 
-    <!-- ==========  HUB  ========== -->
+    <!-- ========== HUB ========== -->
     <div id="hub" style="display:none">
         <div id="hub-top">
             <span id="hubName"></span>
@@ -29,20 +29,18 @@
         </div>
     </div>
 
-    <!-- ==========  WORLD / NORMAL GRID  ========== -->
+    <!-- ========== WORLD (normal grid) ========== -->
     <div id="world" style="display:none">
         <div id="world-top">
             <span id="worldName"></span>
             <span>World <span id="worldId">1</span></span>
             <button onclick="exitWorld()">Exit</button>
         </div>
-        <div id="enemy-bar">
-            <span>Enemies: <span id="enemyCount">0</span></span>
-        </div>
+        <div id="enemy-bar"><span>Enemies left: <span id="enemyCount">0</span></span></div>
         <div id="grid-container" class="grid"></div>
     </div>
 
-    <!-- ==========  RAID LOBBY  ========== -->
+    <!-- ========== RAID LOBBY ========== -->
     <div id="raid-lobby" style="display:none">
         <h2>Raid Lobby</h2>
         <div id="queue-list"></div>
@@ -50,19 +48,16 @@
         <button onclick="leaveQueue()">Leave</button>
     </div>
 
-    <!-- ==========  RAID BOSS FIGHT  ========== -->
+    <!-- ========== RAID FIGHT ========== -->
     <div id="raid-fight" style="display:none">
         <div id="boss-bar">
             <span id="boss-name">Grid Guardian</span>
             <div id="boss-hp-bg"><div id="boss-hp-fill"></div></div>
         </div>
         <div id="raid-grid-container" class="grid"></div>
-        <div id="raid-party">
-            <!-- party frames injected here -->
-        </div>
     </div>
 
-    <!-- ==========  INVENTORY   ========== -->
+    <!-- ========== INVENTORY (RotMG style) ========== -->
     <div id="inventory" style="display:none">
         <h2>Inventory</h2>
         <div id="inv-slots"></div>
