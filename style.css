@@ -46,8 +46,8 @@ body.light {
   margin-top: 10px;
   width: 600px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
+  align-items: center;
+  gap: 10px;
 }
 #dungeonSelector button {
   flex: 1 1 30%;
