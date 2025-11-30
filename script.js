@@ -15,16 +15,21 @@ let player = {
 let dungeon = {zone:0, floor:0};
 let board = [], revealed = [], flagged = [], enemies = [];
 let gameOver=false;
+let NFMode = false; // No-Flags Mode
 
 /* ----------------- INITIALIZATION ----------------- */
 function createDungeonSelector() {
   const sel = document.getElementById('dungeonSelector');
-  sel.innerHTML='<b>Select Dungeon:</b>';
+  sel.innerHTML = '<label><input type="checkbox" id="nfModeToggle"> No-Flags Mode (NF)</label>';
   zones.forEach((z,i)=>{
     const btn = document.createElement('button');
     btn.textContent=z.name;
     btn.addEventListener('click',()=>startDungeon(i));
     sel.appendChild(btn);
+  });
+
+  document.getElementById('nfModeToggle').addEventListener('change',(e)=>{
+    NFMode = e.target.checked;
   });
 }
 function startDungeon(zoneIndex) {
@@ -61,19 +66,17 @@ function placeMines(size,mines){
 }
 function countAdjacentMines(r,c){
   let count=0;
-  for(let dr=-1;dr<=1;dr++){
-    for(let dc=-1;dc<=1;dc++){
-      if(dr===0 && dc===0) continue;
-      const nr=r+dr, nc=c+dc;
-      if(nr>=0 && nr<board.length && nc>=0 && nc<board[0].length && board[nr][nc]==='M') count++;
-    }
-  }
+  for(let dr=-1;dr<=1;dr++){for(let dc=-1;dc<=1;dc++){
+    if(dr===0 && dc===0) continue;
+    const nr=r+dr, nc=c+dc;
+    if(nr>=0 && nr<board.length && nc>=0 && nc<board[0].length && board[nr][nc]==='M') count++;
+  }}
   return count;
 }
 
 /* ----------------- GAMEPLAY ----------------- */
 function revealCell(r,c){
-  if(revealed[r][c]||flagged[r][c]||gameOver) return;
+  if(revealed[r][c]||gameOver) return;
   revealed[r][c]=true;
   if(board[r][c]==='M'){
     player.hp-=5;
@@ -89,6 +92,7 @@ function revealCell(r,c){
   checkWin();
 }
 function toggleFlag(r,c){
+  if(NFMode) return; // Disable flags in NF mode
   if(revealed[r][c]||gameOver) return;
   flagged[r][c]=!flagged[r][c];
   updateBoardUI();
@@ -98,12 +102,16 @@ function chordCell(r,c){
   let flagsAround=0;
   for(let dr=-1;dr<=1;dr++){for(let dc=-1;dc<=1;dc++){
     const nr=r+dr, nc=c+dc;
-    if(nr>=0 && nr<board.length && nc>=0 && nc<board[0].length && flagged[nr][nc]) flagsAround++;
+    if(nr>=0 && nr<board.length && nc>=0 && nc<board[0].length){
+      if(!NFMode && flagged[nr][nc]) flagsAround++;
+    }
   }}
-  if(flagsAround===board[r][c]){
+  if(flagsAround===board[r][c] || NFMode){ // NF ignores flags
     for(let dr=-1;dr<=1;dr++){for(let dc=-1;dc<=1;dc++){
       const nr=r+dr, nc=c+dc;
-      if(nr>=0 && nr<board.length && nc>=0 && nc<board[0].length && !flagged[nr][nc]) revealCell(nr,nc);
+      if(nr>=0 && nr<board.length && nc>=0 && nc<board[0].length){
+        if(!revealed[nr][nc]) revealCell(nr,nc);
+      }
     }}
   }
 }
@@ -149,11 +157,13 @@ function checkWin(){
     }
   }
   if(won){
-    player.coins+=10; player.xp+=5;
-    if(player.xp>=player.xpToNext){player.level++; player.xp=0; player.maxHp+=5; player.hp=player.maxHp;}
-    dungeon.floor++;
     const z = zones[dungeon.zone];
-    if(dungeon.floor>=z.floors){
+    const reward = NFMode ? 15 : 10; // bonus coins for NF mode
+    player.coins += reward;
+    player.xp += 5;
+    if(player.xp >= player.xpToNext){player.level++; player.xp=0; player.maxHp+=5; player.hp=player.maxHp;}
+    dungeon.floor++;
+    if(dungeon.floor >= z.floors){
       document.getElementById('message').textContent='Dungeon Complete! Coins & XP awarded';
     } else {
       document.getElementById('message').textContent='Floor Complete! Proceeding to next floor';
